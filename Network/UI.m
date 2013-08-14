@@ -24,12 +24,12 @@ global occuThreshold
 
 
 % name the index of configuration(s) 
-configID = [41;43];
+configID = [100];
 
 % boundary sensorIDs & testing sensorIDs
 thresholdChoice = 2;  % 1: manually 2:adaptive
 expectAR = 0.6;
-sensorMode = 2; % 1: density, 2: flow
+sensorMode = 1; % 1: density, 2: flow
 errorStart = 4;  % # of data ignored ahead
 samplingModeVmax = 1; % 1: Gaussian, 2: uniform
 samplingModeDmax = 2;

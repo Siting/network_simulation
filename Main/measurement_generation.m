@@ -2,11 +2,13 @@ function[]=measurement_generation(CONFIG,PARAMETER,configID)
 
 %% Get network, parameters, initial state, boundary condition details========================================
 [deltaTinSecond, deltaT, nT, numIntervals, numEns,...
-    startString, endString, startTime, unixTimeStep, FUNDAMENTAL, trueNodeRatio,...
+    startTime, endTime, startTimeDate, unixTimeStep, FUNDAMENTAL, trueNodeRatio,...
     vmaxVar, dmaxVar, dcVar, trueNodeRatioVar, modelFirst, modelLast, populationSize,...
     samplingSize, criteria, stateNoiseGamma, measNoiseGamma, etaW, junctionSolverType,...
     numTimeSteps, samplingInterval, trueStateErrorMean, trueStateErrorVar,...
-    measConfigID, measNetworkID, caliNetworkID, testingDataFolder, evolutionDataFolder, sensorDataFolder, configID, T] = getConfigAndPara(CONFIG,PARAMETER);
+    measConfigID, measNetworkID, caliNetworkID, testingDataFolder, evolutionDataFolder,...
+    sensorDataFolder, configID, T, thresholdVector] = getConfigAndPara(CONFIG,PARAMETER);
+numTimeSteps = (endTime-startTime)*3600/deltaTinSecond;
 
 load([measNetworkID, '-graph.mat']);
 disp([measNetworkID, '-graph loaded']);
@@ -19,6 +21,7 @@ disp([measNetworkID, '-graph loaded']);
 % vmax: miles/hour
 % dmax: vehs/mile
 % dc: vehs/mile
+
 [LINK] = loadLinks(linkMap,FUNDAMENTAL, configID);
 % disp('links loaded');
 
@@ -54,16 +57,17 @@ disp([measNetworkID, '-graph loaded']);
 % disp('initializtion completed');
 
 %% Feed in boundary condition
-[SOURCE_LINK, SINK_LINK] = loadBoundaryCondtion(SOURCE_LINK,SINK_LINK,numIntervals,CONFIG);
+[SOURCE_LINK, SINK_LINK] = loadBoundaryCondtion_meas(SOURCE_LINK,SINK_LINK,numIntervals,CONFIG, startTime, endTime, T);
 % disp('boundary condition loaded');
 % pause(1);
 
 %% Generate "true" state 
 % will have page = numTimeSteps + 1
 disp('start forward simulation');
-
+occuDataMatrix_source = [];
+occuDataMatrix_sink = [];
 [LINK] = runForwardSimulation(LINK,SOURCE_LINK,SINK_LINK,JUNCTION,...
-    deltaT,numEns,numTimeSteps,nT,junctionSolverType);
+    deltaT,numEns,numTimeSteps,nT,junctionSolverType, occuDataMatrix_source, occuDataMatrix_sink);
 disp('measurements generated');
 
 %% save density result for all timesteps as .mat file
@@ -93,7 +97,7 @@ save([evolutionDataFolder '\LINK_WITH_SENSOR-CONFIG-' num2str(configID)],'LINK_W
 % end
 
 % save sensor data
-saveSensorData2Mat(SENSOR_DATA_MATRIX, CONFIG, PARAMETER);
+saveSensorData2Mat_meas(SENSOR_DATA_MATRIX, CONFIG, PARAMETER,1);
 
 
 disp('configuration results saved');

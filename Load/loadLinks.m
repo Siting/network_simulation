@@ -1,9 +1,9 @@
-function[LINK SOURCE_LINK SINK_LINK] = loadLinks(linkMap,FUNDAMENTAL, configID)
+function[LINK, SOURCE_LINK, SINK_LINK] = loadLinks(linkMap,FUNDAMENTAL, configID)
 
 global funsOption
 
-LINK = containers.Map( ...
-    'KeyType', 'int64', 'ValueType', 'any');
+% LINK = containers.Map( ...
+%     'KeyType', 'int64', 'ValueType', 'any');
 
 linkIds = linkMap.keys;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -23,9 +23,9 @@ end
 
 guessedFUNDAMENTAL = FUNDAMENTAL;
 
-for i = 1 : length(linkIds)
+for i = length(linkIds) : -1 : 1
     NTlink = linkMap(linkIds{i});
-    link = struct('linkId',NTlink.linkId,'incomingNode',NTlink.incomingNode,...
+    LINK(i) = struct('linkId',NTlink.linkId,'incomingNode',NTlink.incomingNode,...
         'outgoingNode',NTlink.outgoingNode,'numLanes',NTlink.numberOfLanes,...
         'length',NTlink.lengthInMiles,'startLatLon',NTlink.startLatLon,...
         'endLatLon',NTlink.endLatLon,'vmax',[],'dmax',[],'dc',[],...
@@ -33,18 +33,18 @@ for i = 1 : length(linkIds)
         'cellIndex',[],'offsetFromGraph',[],'sensors',NTlink.sensors);
     if funsOption == 1
         % fundamental diagram parameters
-        link.vmax = FUNDAMENTAL.vmax;
-        link.dc = NTlink.numberOfLanes * FUNDAMENTAL.dc;
-        link.dmax = NTlink.numberOfLanes * FUNDAMENTAL.dmax;
+        LINK(i).vmax = FUNDAMENTAL.vmax;
+        LINK(i).dc = NTlink(i).numberOfLanes * FUNDAMENTAL.dc;
+        LINK(i).dmax = NTlink.numberOfLanes * FUNDAMENTAL.dmax;
     elseif funsOption == 2
         guessedFUNDAMENTAL.vmax = vmax_mean(i);
         guessedFUNDAMENTAL.dmax = dmax_mean(i);
         guessedFUNDAMENTAL.dc = dc_mean(i);
         [FUNDAMENTAL] = sampleFUNDA(guessedFUNDAMENTAL, vmax_var(i), dmax_var(i), dc_var(i));
-        link.vmax = FUNDAMENTAL.vmax;
-        link.dmax = NTlink.numberOfLanes * FUNDAMENTAL.dmax;
-        link.dc = NTlink.numberOfLanes * FUNDAMENTAL.dc;
+        LINK(i).vmax = FUNDAMENTAL.vmax;
+        LINK(i).dmax = NTlink.numberOfLanes * FUNDAMENTAL.dmax;
+        LINK(i).dc = NTlink.numberOfLanes * FUNDAMENTAL.dc;
     end
     
-    LINK(linkIds{i}) = link;
+%     LINK(linkIds{i}) = link;
 end
